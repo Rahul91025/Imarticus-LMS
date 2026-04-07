@@ -5,6 +5,7 @@ import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Dashboard from '../pages/Dashboard';
 import CourseDetail from '../pages/CourseDetail';
+import CoursePlayer from '../pages/CoursePlayer';
 import Summarizer from '../pages/Summarizer';
 
 function PrivateRoute({ children }) {
@@ -27,6 +28,7 @@ export default function AppRoutes() {
       <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/course/:id" element={<PaidRoute><CourseDetail /></PaidRoute>} />
+      <Route path="/learn/:id" element={<PaidRoute><CoursePlayer /></PaidRoute>} />
       <Route path="/summarizer" element={<PaidRoute><Summarizer /></PaidRoute>} />
     </Routes>
   );

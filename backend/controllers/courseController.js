@@ -71,3 +71,35 @@ exports.ensureEnrollment = async (userId, courseId) => {
   }
   return enrollment;
 };
+
+const pdfParse = require('pdf-parse');
+
+exports.uploadDocument = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+    
+    // Parse the PDF buffer
+    let documentText = '';
+    try {
+      const data = await pdfParse(req.file.buffer);
+      documentText = data.text;
+    } catch (parseErr) {
+      return res.status(500).json({ message: 'Error parsing PDF', error: parseErr.message });
+    }
+
+    const { id, moduleIndex } = req.params;
+    const course = await Course.findById(id);
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+
+    if (!course.syllabus[moduleIndex]) return res.status(404).json({ message: 'Module not found' });
+
+    course.syllabus[moduleIndex].documentTitle = req.file.originalname;
+    course.syllabus[moduleIndex].documentText = documentText;
+
+    await course.save();
+    res.json({ message: 'Document uploaded successfully', module: course.syllabus[moduleIndex] });
+  } catch (err) {
+    console.error('SERVER ERROR IN UPLOAD:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};

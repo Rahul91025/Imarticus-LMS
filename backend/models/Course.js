@@ -11,7 +11,10 @@ const courseSchema = new mongoose.Schema({
   syllabus: [{
     title: String,
     content: String,
-    duration: String
+    duration: String,
+    videoUrl: String,
+    documentTitle: String,
+    documentText: String
   }],
   enrolledStudents: { type: Number, default: 0 },
   isFeatured: { type: Boolean, default: false }
