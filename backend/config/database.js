@@ -27,6 +27,9 @@ async function connectDB() {
     let uri = process.env.MONGODB_URI;
 
     if (!uri || uri.includes('your-connection-string')) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('MONGODB_URI is not set in production environment variables.');
+      }
       console.log('No real MongoDB URI found, using in-memory database...');
       const { MongoMemoryServer } = require('mongodb-memory-server');
       const server = await MongoMemoryServer.create();
@@ -42,8 +45,9 @@ async function connectDB() {
       console.log('Default course created');
     }
   } catch (err) {
-    console.error('DB connection failed:', err.message);
-    process.exit(1);
+    console.error('CRITICAL: DB connection failed:', err.message);
+    // Don't process.exit(1) on Vercel as it crashes the entire function invocation.
+    // Instead, throw error or log so API routes can handle it.
   }
 }
 
