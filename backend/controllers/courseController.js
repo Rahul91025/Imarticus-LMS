@@ -43,10 +43,7 @@ exports.getEnrolledCourses = async (req, res) => {
 exports.updateProgress = async (req, res) => {
   try {
     const { moduleTitle } = req.body;
-    const enrollment = await Enrollment.findOne({
-      user: req.user.id,
-      course: req.params.id
-    });
+    const enrollment = await Enrollment.findOne({ user: req.user.id, course: req.params.id });
     if (!enrollment) return res.status(404).json({ message: 'Enrollment not found' });
 
     if (moduleTitle && !enrollment.completedModules.includes(moduleTitle)) {

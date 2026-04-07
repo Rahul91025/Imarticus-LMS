@@ -9,9 +9,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <div className="min-h-screen flex flex-col">
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           <Navbar />
-          <main className="flex-1">
+          <main style={{ flex: 1 }}>
             <AppRoutes />
           </main>
           <Footer />

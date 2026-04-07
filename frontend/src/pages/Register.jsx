@@ -33,49 +33,74 @@ export default function Register() {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-[80vh] px-4 py-10">
-      <div className="w-full max-w-md bg-white border border-[var(--border)] rounded-2xl p-8">
-        <h1 className="text-2xl font-bold text-[var(--dark)]">Create Account</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-2">
+    <div style={{
+      display: 'flex', justifyContent: 'center', alignItems: 'center',
+      minHeight: '80vh', padding: '40px 24px',
+      background: 'linear-gradient(135deg, #f0f7e4, #f5f9ee)',
+    }}>
+      <div style={{
+        width: '100%', maxWidth: 420, background: 'white',
+        border: '1px solid var(--border)', borderRadius: 20, padding: 36,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
+      }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-dark)' }}>Create Account</h1>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 6 }}>
           Register to access the LMS and AI tools
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <input
             type="text" placeholder="Full name" required
             value={form.name} onChange={e => update('name', e.target.value)}
-            className="w-full border border-[var(--border)] rounded-lg px-4 py-3 text-sm bg-[var(--cream-light)] outline-none focus:border-[var(--primary)]"
+            style={inputStyle}
           />
           <input
             type="email" placeholder="Email address" required
             value={form.email} onChange={e => update('email', e.target.value)}
-            className="w-full border border-[var(--border)] rounded-lg px-4 py-3 text-sm bg-[var(--cream-light)] outline-none focus:border-[var(--primary)]"
+            style={inputStyle}
           />
           <input
             type="password" placeholder="Password" required
             value={form.password} onChange={e => update('password', e.target.value)}
-            className="w-full border border-[var(--border)] rounded-lg px-4 py-3 text-sm bg-[var(--cream-light)] outline-none focus:border-[var(--primary)]"
+            style={inputStyle}
           />
           <input
             type="password" placeholder="Confirm password" required
             value={form.confirmPassword} onChange={e => update('confirmPassword', e.target.value)}
-            className="w-full border border-[var(--border)] rounded-lg px-4 py-3 text-sm bg-[var(--cream-light)] outline-none focus:border-[var(--primary)]"
+            style={inputStyle}
           />
 
-          {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">{error}</p>}
+          {error && (
+            <p style={{ fontSize: 13, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: 12 }}>
+              {error}
+            </p>
+          )}
 
           <button
             type="submit" disabled={loading}
-            className="w-full bg-[var(--primary)] text-white py-3 rounded-lg font-semibold hover:bg-[var(--primary-dark)] transition disabled:opacity-50"
+            className="btn btn-primary"
+            style={{ width: '100%', justifyContent: 'center', marginTop: 4, opacity: loading ? 0.6 : 1 }}
           >
-            {loading ? 'Creating...' : 'Create Account'}
+            {loading ? 'Creating…' : 'Create Account'}
           </button>
         </form>
 
-        <p className="mt-6 text-sm text-[var(--text-muted)]">
-          Already have an account? <Link to="/login" className="text-[var(--primary)] font-semibold">Sign in</Link>
+        <p style={{ marginTop: 24, fontSize: 14, color: 'var(--text-muted)' }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: 'var(--green-dark)', fontWeight: 600 }}>Sign in</Link>
         </p>
       </div>
     </div>
   );
 }
+
+const inputStyle = {
+  width: '100%',
+  padding: '12px 16px',
+  borderRadius: 10,
+  border: '1px solid var(--border)',
+  fontSize: 14,
+  outline: 'none',
+  fontFamily: 'inherit',
+  background: '#fafbfc',
+};
