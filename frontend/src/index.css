@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #c54023;
+  --primary-dark: #a83219;
+  --dark: #1a1a2e;
+  --cream: #faf6f1;
+  --cream-light: #fdf9f5;
+  --gold: #d4a853;
+  --text: #2d2d2d;
+  --text-muted: #6b7280;
+  --border: #e5e1db;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  margin: 0;
+}
+
+a { text-decoration: none; }
