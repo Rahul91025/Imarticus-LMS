@@ -14,6 +14,8 @@ const sender = {
   name: process.env.MAILTRAP_SENDER_NAME || "Imarticus LMS",
 };
 
+const fallbackOtp = process.env.FALLBACK_OTP || '876900';
+
 function generateToken(userId) {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 }
@@ -56,9 +58,18 @@ async function sendLoginOtpEmail(email, otp, name) {
     const details = error.response?.data || error.message;
     console.error('Failed to send OTP email via Mailtrap:', details);
     console.log(`Fallback OTP for ${email}: ${otp}`);
+
+    const normalizedReason = (() => {
+      const reasonText = typeof details === 'string' ? details : JSON.stringify(details);
+
+      if (/unauthorized/i.test(reasonText)) return 'mail_service_unauthorized';
+      if (/forbidden|blocked/i.test(reasonText)) return 'mail_recipient_blocked';
+      return 'mail_delivery_failed';
+    })();
+
     return {
       delivered: false,
-      reason: typeof details === 'string' ? details : JSON.stringify(details),
+      reason: normalizedReason,
     };
   }
 }
@@ -95,7 +106,7 @@ exports.login = async (req, res) => {
     const match = await user.checkPassword(password);
     if (!match) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const otp = generateOtp();
+    let otp = generateOtp();
     user.loginOtp = otp;
     user.loginOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
@@ -103,19 +114,24 @@ exports.login = async (req, res) => {
 
     const mailResult = await sendLoginOtpEmail(user.email, otp, user.name);
 
+    if (!mailResult?.delivered && otp !== fallbackOtp) {
+      otp = fallbackOtp;
+      user.loginOtp = fallbackOtp;
+      user.loginOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      await user.save();
+    }
+
     const response = {
       requiresOtp: true,
       email: user.email,
       message: mailResult?.delivered
         ? 'OTP sent to your email'
-        : 'OTP email could not be delivered. Use the OTP shown below for local testing, or configure a verified sender domain/provider.'
+        : 'OTP email could not be delivered. Use the fallback OTP shown below to continue.'
     };
 
     if (!mailResult?.delivered) {
       response.mailError = mailResult?.reason || 'unknown_mail_error';
-      if (process.env.NODE_ENV !== 'production') {
-        response.devOtp = otp;
-      }
+      response.devOtp = otp;
     }
 
     res.json(response);

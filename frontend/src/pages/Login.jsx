@@ -23,11 +23,7 @@ export default function Login() {
         } else {
           sessionStorage.removeItem('devOtp');
         }
-        if (data.mailError) {
-          sessionStorage.setItem('otpMailError', data.mailError);
-        } else {
-          sessionStorage.removeItem('otpMailError');
-        }
+        sessionStorage.removeItem('otpMailError');
         navigate('/otp');
         return;
       }

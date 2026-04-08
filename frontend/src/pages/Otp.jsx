@@ -7,7 +7,6 @@ export default function Otp() {
   const { verifyOtp } = useAuth();
   const savedEmail = useMemo(() => sessionStorage.getItem('otpEmail') || '', []);
   const savedDevOtp = useMemo(() => sessionStorage.getItem('devOtp') || '', []);
-  const savedMailError = useMemo(() => sessionStorage.getItem('otpMailError') || '', []);
   const [email, setEmail] = useState(savedEmail);
   const [otp, setOtp] = useState(savedDevOtp);
   const [loading, setLoading] = useState(false);
@@ -50,14 +49,8 @@ export default function Otp() {
 
         {savedDevOtp && (
           <p style={{ fontSize: 13, color: '#92400e', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10, padding: 12, marginTop: 18 }}>
-            Email delivery is blocked by Mailtrap for this recipient during local testing.
+            Email delivery is currently unavailable for this recipient.
             Use OTP <strong>{savedDevOtp}</strong> to continue.
-          </p>
-        )}
-
-        {savedMailError && (
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 10 }}>
-            Mail error: {savedMailError}
           </p>
         )}
 
