@@ -28,6 +28,11 @@ export function AuthProvider({ children }) {
 
   async function login(email, password) {
     const res = await api.post('/auth/login', { email, password });
+    return res.data;
+  }
+
+  async function verifyOtp(email, otp) {
+    const res = await api.post('/auth/verify-otp', { email, otp });
     localStorage.setItem('token', res.data.token);
     setUser(res.data.user);
     return res.data;
@@ -46,7 +51,7 @@ export function AuthProvider({ children }) {
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>;
 
   return (
-    <AuthContext.Provider value={{ user, register, login, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ user, register, login, verifyOtp, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

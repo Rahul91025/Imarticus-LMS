@@ -7,6 +7,7 @@ import Dashboard from '../pages/Dashboard';
 import CourseDetail from '../pages/CourseDetail';
 import CoursePlayer from '../pages/CoursePlayer';
 import Summarizer from '../pages/Summarizer';
+import Otp from '../pages/Otp';
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -25,6 +26,7 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/otp" element={<Otp />} />
       <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/course/:id" element={<PaidRoute><CourseDetail /></PaidRoute>} />

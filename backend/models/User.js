@@ -6,6 +6,8 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true, minlength: 6 },
   hasPaid: { type: Boolean, default: false },
+  loginOtp: { type: String, default: null },
+  loginOtpExpiresAt: { type: Date, default: null },
   enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Enrollment' }]
 }, { timestamps: true });
 
