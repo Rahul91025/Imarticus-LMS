@@ -2,19 +2,16 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { MailtrapClient } = require("mailtrap");
 
-const hasMailtrapConfig =
-  "183a0c02eb39f5ac07da87c57b4766e9" &&
-  process.env.MAIL_FROM;
+const hasMailtrapConfig = process.env.MAILTRAP_TOKEN;
 
-const TOKEN = "183a0c02eb39f5ac07da87c57b4766e9";
-  
-const client = new MailtrapClient({
-  token: TOKEN,
-});
+const client = process.env.MAILTRAP_TOKEN
+  ? new MailtrapClient({ token: process.env.MAILTRAP_TOKEN })
+  : null;
 
 const sender = {
-  email: process.env.MAIL_FROM || "no-reply@imarticus-lms.local",
-  name: process.env.MAIL_FROM_NAME || "Imarticus LMS",
+  // Mailtrap's send API works with a verified sender or their demo sender.
+  email: process.env.MAILTRAP_SENDER_EMAIL || "hello@demomailtrap.co",
+  name: process.env.MAILTRAP_SENDER_NAME || "Imarticus LMS",
 };
 
 function generateToken(userId) {
@@ -26,27 +23,44 @@ function generateOtp() {
 }
 
 async function sendLoginOtpEmail(email, otp, name) {
-  if (!hasMailtrapConfig) {
+  if (!hasMailtrapConfig || !client) {
     console.log(`Mailtrap not configured. OTP for ${email}: ${otp}`);
-    return;
+    return {
+      delivered: false,
+      reason: 'mailtrap_not_configured',
+    };
   }
 
-  await client.send({
-    from: sender,
-    to: [{ email }],
-    subject: 'Your Imarticus login OTP',
-    text: `Hello ${name || 'User'}, your OTP is ${otp}. It will expire in 10 minutes.`,
-    html: `
-      <div style="font-family: Arial, sans-serif; color: #1f2937;">
-        <h2>Your Login OTP</h2>
-        <p>Hello ${name || 'User'},</p>
-        <p>Use this OTP to complete your login:</p>
-        <p style="font-size: 28px; font-weight: 700; letter-spacing: 4px;">${otp}</p>
-        <p>This OTP will expire in 10 minutes.</p>
-      </div>
-    `,
-    category: 'Login OTP'
-  });
+  try {
+    await client.send({
+      from: sender,
+      to: [{ email }],
+      subject: 'Your Imarticus login OTP',
+      text: `Hello ${name || 'User'}, your OTP is ${otp}. It will expire in 10 minutes.`,
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #1f2937;">
+          <h2>Your Login OTP</h2>
+          <p>Hello ${name || 'User'},</p>
+          <p>Use this OTP to complete your login:</p>
+          <p style="font-size: 28px; font-weight: 700; letter-spacing: 4px;">${otp}</p>
+          <p>This OTP will expire in 10 minutes.</p>
+        </div>
+      `,
+      category: 'Login OTP'
+    });
+    return {
+      delivered: true,
+      reason: 'sent',
+    };
+  } catch (error) {
+    const details = error.response?.data || error.message;
+    console.error('Failed to send OTP email via Mailtrap:', details);
+    console.log(`Fallback OTP for ${email}: ${otp}`);
+    return {
+      delivered: false,
+      reason: typeof details === 'string' ? details : JSON.stringify(details),
+    };
+  }
 }
 
 exports.register = async (req, res) => {
@@ -87,15 +101,24 @@ exports.login = async (req, res) => {
     await user.save();
 
 
-    await sendLoginOtpEmail(user.email, otp, user.name);
+    const mailResult = await sendLoginOtpEmail(user.email, otp, user.name);
 
-    res.json({
+    const response = {
       requiresOtp: true,
       email: user.email,
-      message: hasMailtrapConfig
+      message: mailResult?.delivered
         ? 'OTP sent to your email'
-        : 'OTP generated. Mailtrap is not configured, so check the backend console.'
-    });
+        : 'OTP email could not be delivered. Use the OTP shown below for local testing, or configure a verified sender domain/provider.'
+    };
+
+    if (!mailResult?.delivered) {
+      response.mailError = mailResult?.reason || 'unknown_mail_error';
+      if (process.env.NODE_ENV !== 'production') {
+        response.devOtp = otp;
+      }
+    }
+
+    res.json(response);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }

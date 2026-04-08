@@ -6,8 +6,10 @@ export default function Otp() {
   const navigate = useNavigate();
   const { verifyOtp } = useAuth();
   const savedEmail = useMemo(() => sessionStorage.getItem('otpEmail') || '', []);
+  const savedDevOtp = useMemo(() => sessionStorage.getItem('devOtp') || '', []);
+  const savedMailError = useMemo(() => sessionStorage.getItem('otpMailError') || '', []);
   const [email, setEmail] = useState(savedEmail);
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState(savedDevOtp);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -17,8 +19,10 @@ export default function Otp() {
 
     try {
       setLoading(true);
-       await verifyOtp(email, otp);
+      await verifyOtp(email, otp);
       sessionStorage.removeItem('otpEmail');
+      sessionStorage.removeItem('devOtp');
+      sessionStorage.removeItem('otpMailError');
       localStorage.setItem('pendingPayment', 'true');
       navigate('/');
     } catch (err) {
@@ -43,6 +47,19 @@ export default function Otp() {
         <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 6 }}>
           Enter the OTP sent to your email to finish login
         </p>
+
+        {savedDevOtp && (
+          <p style={{ fontSize: 13, color: '#92400e', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10, padding: 12, marginTop: 18 }}>
+            Email delivery is blocked by Mailtrap for this recipient during local testing.
+            Use OTP <strong>{savedDevOtp}</strong> to continue.
+          </p>
+        )}
+
+        {savedMailError && (
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 10 }}>
+            Mail error: {savedMailError}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <input

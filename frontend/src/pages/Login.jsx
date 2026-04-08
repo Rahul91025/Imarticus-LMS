@@ -18,6 +18,16 @@ export default function Login() {
       const data = await login(email, password);
       if (data.requiresOtp) {
         sessionStorage.setItem('otpEmail', email);
+        if (data.devOtp) {
+          sessionStorage.setItem('devOtp', data.devOtp);
+        } else {
+          sessionStorage.removeItem('devOtp');
+        }
+        if (data.mailError) {
+          sessionStorage.setItem('otpMailError', data.mailError);
+        } else {
+          sessionStorage.removeItem('otpMailError');
+        }
         navigate('/otp');
         return;
       }
