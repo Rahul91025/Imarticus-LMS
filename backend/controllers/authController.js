@@ -1,13 +1,10 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const nodemailer = require('nodemailer');
 const { MailtrapClient } = require("mailtrap");
 
 const hasMailtrapConfig =
-  process.env.MAILTRAP_HOST &&
-  process.env.MAILTRAP_PORT &&
-  process.env.MAILTRAP_USER &&
-  process.env.MAILTRAP_PASS;
+  "183a0c02eb39f5ac07da87c57b4766e9" &&
+  process.env.MAIL_FROM;
 
 const TOKEN = "183a0c02eb39f5ac07da87c57b4766e9";
   
@@ -16,23 +13,9 @@ const client = new MailtrapClient({
 });
 
 const sender = {
-  email: "hello@demomailtrap.co",
-  name: "Mailtrap Test",
+  email: process.env.MAIL_FROM || "no-reply@imarticus-lms.local",
+  name: process.env.MAIL_FROM_NAME || "Imarticus LMS",
 };
-const recipients = [
-  {
-    email: "rahulgupta109037@gmail.com",
-  }
-];
-
-const transporter = nodemailer.createTransport({
-    host: 'sandbox.smtp.mailtrap.io',
-    port: 2525,
-    auth: {
-        user: 'YOUR_MAILTRAP_USERNAME',
-        pass: 'YOUR_MAILTRAP_PASSWORD'
-    }
-});
 
 function generateToken(userId) {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -43,14 +26,14 @@ function generateOtp() {
 }
 
 async function sendLoginOtpEmail(email, otp, name) {
-  if (!transporter) {
+  if (!hasMailtrapConfig) {
     console.log(`Mailtrap not configured. OTP for ${email}: ${otp}`);
     return;
   }
 
-  await transporter.sendMail({
-    from: process.env.MAIL_FROM || 'no-reply@imarticus-lms.local',
-    to: email,
+  await client.send({
+    from: sender,
+    to: [{ email }],
     subject: 'Your Imarticus login OTP',
     text: `Hello ${name || 'User'}, your OTP is ${otp}. It will expire in 10 minutes.`,
     html: `
@@ -61,7 +44,8 @@ async function sendLoginOtpEmail(email, otp, name) {
         <p style="font-size: 28px; font-weight: 700; letter-spacing: 4px;">${otp}</p>
         <p>This OTP will expire in 10 minutes.</p>
       </div>
-    `
+    `,
+    category: 'Login OTP'
   });
 }
 
@@ -103,18 +87,7 @@ exports.login = async (req, res) => {
     await user.save();
 
 
-    //  const test1  = await sendLoginOtpEmail(user.email, otp, user.name);
-
-    // console.log("++++++++++++++++++++++++++++++++" , test1)
-    client
-  .send({
-    from: sender,
-    to: recipients,
-    subject: "You are awesome!",
-    text: `Congrats for sending test email with Mailtrap! otp is  ${otp}`,
-    category: "Integration Test",
-  })
-  .then(console.log, console.error);
+    await sendLoginOtpEmail(user.email, otp, user.name);
 
     res.json({
       requiresOtp: true,

@@ -17,7 +17,7 @@ export default function Otp() {
 
     try {
       setLoading(true);
-      // await verifyOtp(email, otp);
+       await verifyOtp(email, otp);
       sessionStorage.removeItem('otpEmail');
       localStorage.setItem('pendingPayment', 'true');
       navigate('/');
